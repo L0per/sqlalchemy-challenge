@@ -8,7 +8,6 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
 import datetime as dt
-from dateutil.parser import parse
 
 # Database setup
 engine = create_engine("sqlite:///Data/hawaii.sqlite")
