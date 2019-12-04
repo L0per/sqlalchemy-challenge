@@ -32,31 +32,23 @@ app = Flask(__name__)
 def homepage():
     return (
         """
-        Available Routes:<br/>
-        <br/>
+        <h1>Available Routes:</h1>
         Precipitation data for last year of data:<br/>
-        /api/v1.0/precipitation<br/>
+        <a href="http://127.0.0.1:5000/api/v1.0/precipitation">/api/v1.0/precipitation</a><br/>
         <br/>
         List of stations:<br/>
-        /api/v1.0/stations<br/>
+        <a href="http://127.0.0.1:5000/api/v1.0/stations">/api/v1.0/stations</a><br/>
         <br/>
         Last year of temperature data from station USC00519281:<br/>
-        /api/v1.0/tobs<br/>
+        <a href="http://127.0.0.1:5000/api/v1.0/tobs">/api/v1.0/tobs</a><br/>
         <br/>
         Return minimum, average, and maximum tempuratures for the input date(s):<br/>
         /api/v1.0/STARTDATE<br/>
         /api/v1.0/STARTDATE/ENDDATE
         """
-        # f"Available Routes:<br/>"
-        # f"/api/v1.0/precipitation<br/>"
-        # f"/api/v1.0/stations<br/>"
-        # f"/api/v1.0/tobs<br/>"
-        # f"/api/v1.0/<start><br/>"
-        # f"/api/v1.0/<start>/<end>"
     )
 
 # Precipitation; return last year of precipitation data as a dictionary by JSON
-# Ask TAs whether this should be all precipitation data or just last year
 @app.route("/api/v1.0/precipitation")
 def precipitation():
 
@@ -64,15 +56,23 @@ def precipitation():
     session = Session(engine)
 
     # Get last date, find first date by subtracting a year
-    # not sure why the "u" is required now for the strptime func
     last_date = str(session.query(Measurement.date).order_by(Measurement.date.desc()).first())
-    first_date = dt.datetime.strptime(last_date, "(u'%Y-%m-%d',)") - dt.timedelta(days=366)
+    first_date = dt.datetime.strptime(last_date, "('%Y-%m-%d',)") - dt.timedelta(days=366)
 
     # Query last year of precipitation data
     results = session.query(Measurement.date, Measurement.prcp).\
         filter(Measurement.date >= first_date).\
         order_by(Measurement.date.asc()).all()
 
+    # Close session link
+    session.close()
+
+    # Create dictionary containing date as key and prcp as value
+    date_prec_dict = {}
+    for date, prcp in results:
+        date_prec_dict[date] = prcp
+
+    return jsonify(date_prec_dict)
 
 if __name__ == '__main__':
     app.run(debug=True)
