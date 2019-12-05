@@ -52,6 +52,7 @@ def homepage():
         """
     )
 
+
 # Precipitation; return last year of precipitation data as a dictionary by JSON
 @app.route("/api/v1.0/precipitation")
 def precipitation():
@@ -79,6 +80,7 @@ def precipitation():
     return jsonify(date_prec_dict)
 
 
+# Return list of stations by station name, id, and activity
 @app.route("/api/v1.0/stations")
 def stations():
 
@@ -97,6 +99,7 @@ def stations():
     return jsonify(results)
 
 
+# Return list of temp observations from station USC00519281
 @app.route('/api/v1.0/tobs')
 def tobs():
 
@@ -118,6 +121,7 @@ def tobs():
     return jsonify(results)
 
 
+# Return temperature min, max, and avg based on inputed start date
 @app.route("/api/v1.0/<start>")
 def start(start):
 
@@ -145,6 +149,8 @@ def start(start):
 
     return jsonify(tobs_list)
 
+
+# Return temperature min, max, and avg based on inputed start and end dates
 @app.route("/api/v1.0/<start>/<end>")
 def start_end(start,end):
 
