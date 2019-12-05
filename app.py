@@ -37,10 +37,10 @@ def homepage():
     return (
         """
         <h1>Available Routes:</h1>
-        Precipitation data for last year of data:<br/>
+        All precipitation data by station:<br/>
         <a href="http://127.0.0.1:5000/api/v1.0/precipitation">/api/v1.0/precipitation</a><br/>
         <br/>
-        List of stations, associated station id, and their number of datapoints:<br/>
+        List of stations, associated station id, and their number of rows in the database:<br/>
         <a href="http://127.0.0.1:5000/api/v1.0/stations">/api/v1.0/stations</a><br/>
         <br/>
         Last year of temperature data from Waihee station USC00519281:<br/>
@@ -53,29 +53,27 @@ def homepage():
     )
 
 
-# Precipitation; return last year of precipitation data as a dictionary by JSON
+# Precipitation; return all precipitation data as a JSON dictionary, ordered by station
 @app.route("/api/v1.0/precipitation")
 def precipitation():
 
     # Create session link
     session = Session(engine)
 
-    # Get last date, find first date by subtracting a year
-    last_date = str(session.query(Measurement.date).order_by(Measurement.date.desc()).first())
-    first_date = dt.datetime.strptime(last_date, "('%Y-%m-%d',)") - dt.timedelta(days=366)
-
     # Query last year of precipitation data
-    results = session.query(Measurement.date, Measurement.prcp).\
-        filter(Measurement.date >= first_date).\
+    results = session.query(Measurement.date, Measurement.prcp, Measurement.station).\
         order_by(Measurement.date.asc()).all()
 
     # Close session link
     session.close()
 
-    # Create dictionary containing date as key and prcp as value
+    # Create nested dictionary ordered by station
     date_prec_dict = {}
-    for date, prcp in results:
-        date_prec_dict[date] = prcp
+    for date, prcp, station in results:
+        if station not in date_prec_dict:
+            date_prec_dict[station] = {}
+        else:
+            date_prec_dict[station][date] = prcp
 
     return jsonify(date_prec_dict)
 
@@ -128,12 +126,9 @@ def start(start):
     # Create session link
     session = Session(engine)
 
-    # Convert start input date with datetime and subtract 1 day (>= not working correctly?)
-    query_date = dt.datetime.strptime(start, "%Y-%m-%d") - dt.timedelta(days=1)
-
     # Query minimum, average, and maximum temperature for data between input start date and most recent date
     results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= query_date).all()
+        filter(Measurement.date >= start).all()
 
     # Close session link
     session.close()
@@ -157,14 +152,10 @@ def start_end(start,end):
     # Create session link
     session = Session(engine)
 
-    # Convert start input date with datetime and subtract 1 day (>= not working correctly?)
-    start_date = dt.datetime.strptime(start, "%Y-%m-%d") - dt.timedelta(days=1)
-    end_date = dt.datetime.strptime(end, "%Y-%m-%d")
-
     # Query minimum, average, and maximum temperature for data between input start date and most recent date
     results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= start_date).\
-        filter(Measurement.date <= end_date).all()
+        filter(Measurement.date >= start).\
+        filter(Measurement.date <= end).all()
 
     # Close session link
     session.close()
