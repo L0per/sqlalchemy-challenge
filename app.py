@@ -43,7 +43,7 @@ def homepage():
         List of stations, associated station id, and their number of rows in the database:<br/>
         <a href="http://127.0.0.1:5000/api/v1.0/stations">/api/v1.0/stations</a><br/>
         <br/>
-        Last year of temperature data from Waihee station USC00519281:<br/>
+        Last year of temperature data from all stations:<br/>
         <a href="http://127.0.0.1:5000/api/v1.0/tobs">/api/v1.0/tobs</a><br/>
         <br/>
         Return minimum, average, and maximum tempuratures for the input date(s):<br/>
@@ -97,7 +97,7 @@ def stations():
     return jsonify(results)
 
 
-# Return list of temp observations from station USC00519281
+# Return list of temp observations from all stations
 @app.route('/api/v1.0/tobs')
 def tobs():
 
@@ -108,10 +108,10 @@ def tobs():
     last_date = str(session.query(Measurement.date).order_by(Measurement.date.desc()).first())
     first_date = dt.datetime.strptime(last_date, "('%Y-%m-%d',)") - dt.timedelta(days=366)
 
-    # Create query for last 12 months of temperature data for station USC00519281
+    # Create query for last 12 months of temperature data for all stations
     results = session.query(Measurement.date, Measurement.tobs).\
         filter(Measurement.date >= first_date).\
-        filter_by(station='USC00519281').all()
+        order_by(Measurement.date.desc()).all()
 
     # Close session link
     session.close()
