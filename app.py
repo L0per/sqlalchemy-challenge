@@ -72,6 +72,7 @@ def precipitation():
     for date, prcp, station in results:
         if station not in date_prec_dict:
             date_prec_dict[station] = {}
+            date_prec_dict[station][date] = prcp
         else:
             date_prec_dict[station][date] = prcp
 
